@@ -1,0 +1,25 @@
+name: AntiGrifInventory
+version: '1.0.0'
+main: fundug.antiGrifInventory.AntiGrifInventory
+api-version: '1.21'
+author: Fundug
+description: Блокирует предметы из конфига для игроков с малым временем игры
+
+commands:
+  antigrifinventory:
+    description: Управление плагином
+    usage: /antigrifinventory <reload|check>
+    permission: antigrifinventory.use
+    aliases: [agi, antigrif]
+
+permissions:
+  antigrifinventory.use:
+    description: Основное право для использования команд
+    default: true
+  antigrifinventory.reload:
+    description: Позволяет перезагружать конфиг
+    default: op
+  antigrifinventory.bypass:
+    description: Игнорировать блокировку предметов (игрок может брать всё)
+    default: op
+

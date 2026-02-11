@@ -1,0 +1,14 @@
+required-playtime-hours: 48
+
+blocked-items:
+  - DIAMOND
+  - DIAMOND_BLOCK
+  - NETHERITE_INGOT
+  - NETHERITE_SCRAP
+  - TNT
+  - ELYTRA
+  - SHULKER_BOX
+
+message: "&cВы не можете взять этот предмет! Наиграйте больше времени."
+
+show-remaining-time: true
