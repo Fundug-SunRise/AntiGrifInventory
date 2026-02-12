@@ -167,17 +167,18 @@ public class AntiGrifInventory extends JavaPlugin implements Listener {
 
     private void sendDelayedMessage(Player player, long delayTicks) {
         Bukkit.getScheduler().runTaskLater(this, () -> {
-            if (player.isOnline()) {
-                String message = getConfig().getString("message", "&cВы не можете взять этот предмет!");
-                player.sendMessage(message.replace("&", "§"));
 
-                if (getConfig().getBoolean("show-remaining-time", true)) {
-                    long playTimeTicks = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
-                    double remainingHours = (requiredPlaytimeTicks - playTimeTicks) / 20.0 / 60.0 / 60.0;
-                    player.sendMessage("§eОсталось наиграть: " + String.format("%.1f", remainingHours) + " ч.");
-
-                }
-            }
         }, delayTicks);
+        if (player.isOnline()) {
+            String message = getConfig().getString("message", "&cВы не можете взять этот предмет!");
+            player.sendMessage(message.replace("&", "§"));
+
+            if (getConfig().getBoolean("show-remaining-time", true)) {
+                long playTimeTicks = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
+                double remainingHours = (requiredPlaytimeTicks - playTimeTicks) / 20.0 / 60.0 / 60.0;
+                player.sendMessage("§eОсталось наиграть: " + String.format("%.1f", remainingHours) + " ч.");
+
+            }
+        }
     }
 }
