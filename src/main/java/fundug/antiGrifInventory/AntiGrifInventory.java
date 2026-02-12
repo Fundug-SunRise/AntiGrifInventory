@@ -1,5 +1,7 @@
 package fundug.antiGrifInventory;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
 import org.bukkit.command.Command;
@@ -127,7 +129,7 @@ public class AntiGrifInventory extends JavaPlugin implements Listener {
         if (blockedItems.contains(itemType)) {
             event.setCancelled(true);
 
-            MessageCanUsefale(player);
+            MessageCanUsefale(player, true);
         }
     }
 
@@ -149,19 +151,33 @@ public class AntiGrifInventory extends JavaPlugin implements Listener {
             if (blockedItems.contains(itemType) && event.getClickedInventory() != player.getInventory()) {
                 event.setCancelled(true);
 
-                MessageCanUsefale(player);
+                MessageCanUsefale(player, false);
             }
         }
     }
 
-    private void MessageCanUsefale(Player player) {
-        String message = getConfig().getString("message", "&cВы не можете взять этот предмет!");
-        player.sendMessage(message.replace("&", "§"));
-
-        if (getConfig().getBoolean("show-remaining-time", true)) {
-            long playTimeTicks = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
-            double remainingHours = (requiredPlaytimeTicks - playTimeTicks) / 20.0 / 60.0 / 60.0;
-            player.sendMessage("§eОсталось наиграть: " + String.format("%.1f", remainingHours) + " ч.");
+    private void MessageCanUsefale(Player player, boolean useDelay) {
+        if(useDelay){
+            sendDelayedMessage(player, 60);
         }
+        else{
+            sendDelayedMessage(player, 0);
+        }
+    }
+
+    private void sendDelayedMessage(Player player, long delayTicks) {
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            if (player.isOnline()) {
+                String message = getConfig().getString("message", "&cВы не можете взять этот предмет!");
+                player.sendMessage(message.replace("&", "§"));
+
+                if (getConfig().getBoolean("show-remaining-time", true)) {
+                    long playTimeTicks = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
+                    double remainingHours = (requiredPlaytimeTicks - playTimeTicks) / 20.0 / 60.0 / 60.0;
+                    player.sendMessage("§eОсталось наиграть: " + String.format("%.1f", remainingHours) + " ч.");
+
+                }
+            }
+        }, delayTicks);
     }
 }
