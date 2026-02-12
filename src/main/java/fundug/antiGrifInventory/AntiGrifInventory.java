@@ -1,5 +1,7 @@
 package fundug.antiGrifInventory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -13,10 +15,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.swing.text.html.HTMLDocument;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class AntiGrifInventory extends JavaPlugin implements Listener {
 
@@ -165,20 +171,31 @@ public class AntiGrifInventory extends JavaPlugin implements Listener {
         }
     }
 
+    private final Cache<UUID, Long> cooldownTicks = CacheBuilder.newBuilder()
+            .expireAfterWrite(3, TimeUnit.SECONDS)
+            .build();
+
     private void sendDelayedMessage(Player player, long delayTicks) {
-        Bukkit.getScheduler().runTaskLater(this, () -> {
+        UUID uuid = player.getUniqueId();
 
-        }, delayTicks);
-        if (player.isOnline()) {
-            String message = getConfig().getString("message", "&cВы не можете взять этот предмет!");
-            player.sendMessage(message.replace("&", "§"));
+        Long lastTick = cooldownTicks.getIfPresent(uuid);
+        long currentTick = Bukkit.getCurrentTick();
 
-            if (getConfig().getBoolean("show-remaining-time", true)) {
-                long playTimeTicks = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
-                double remainingHours = (requiredPlaytimeTicks - playTimeTicks) / 20.0 / 60.0 / 60.0;
-                player.sendMessage("§eОсталось наиграть: " + String.format("%.1f", remainingHours) + " ч.");
-
-            }
+        if (lastTick != null && (currentTick - lastTick) < delayTicks) {
+            return;
         }
+
+        if (!player.isOnline()) return;
+
+        String message = getConfig().getString("message", "&cВы не можете взять этот предмет!");
+        player.sendMessage(message.replace("&", "§"));
+
+        if (getConfig().getBoolean("show-remaining-time", true)) {
+            long playTimeTicks = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
+            double remainingHours = (requiredPlaytimeTicks - playTimeTicks) / 20.0 / 60.0 / 60.0;
+            player.sendMessage("§eОсталось наиграть: " + String.format("%.1f", remainingHours) + " ч.");
+        }
+
+        cooldownTicks.put(uuid, currentTick);
     }
 }
