@@ -3,6 +3,8 @@ package fundug.antiGrifInventory;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
@@ -28,11 +30,11 @@ public class AntiGrifInventory extends JavaPlugin implements Listener {
 
     private Set<Material> blockedItems;
     private long requiredPlaytimeTicks;
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-
         loadBlockedItems();
 
         int requiredHours = getConfig().getInt("required-playtime-hours", 48);
@@ -164,7 +166,7 @@ public class AntiGrifInventory extends JavaPlugin implements Listener {
 
     private void MessageCanUsefale(Player player, boolean useDelay) {
         if(useDelay){
-            sendDelayedMessage(player, 60);
+            sendDelayedMessage(player, getConfig().getLong("delay-message", 60));
         }
         else{
             sendDelayedMessage(player, 0);
@@ -187,13 +189,19 @@ public class AntiGrifInventory extends JavaPlugin implements Listener {
 
         if (!player.isOnline()) return;
 
-        String message = getConfig().getString("message", "&cВы не можете взять этот предмет!");
-        player.sendMessage(message.replace("&", "§"));
+        String message = getConfig().getString("message", "<red>cВы не можете взять этот предмет!</red>");
+        Component component = MINI_MESSAGE.deserialize(message);
+        player.sendMessage(component);
 
         if (getConfig().getBoolean("show-remaining-time", true)) {
             long playTimeTicks = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
             double remainingHours = (requiredPlaytimeTicks - playTimeTicks) / 20.0 / 60.0 / 60.0;
-            player.sendMessage("§eОсталось наиграть: " + String.format("%.1f", remainingHours) + " ч.");
+
+            String timeMessage = getConfig().getString("time-message", "<yellow>Осталось наиграть: % ч.<yellow>");
+            String res = timeMessage.replace("%", String.format("%.1f", remainingHours));
+            Component timeComponent = MINI_MESSAGE.deserialize(res);
+
+            player.sendMessage(timeComponent);
         }
 
         cooldownTicks.put(uuid, currentTick);
